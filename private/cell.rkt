@@ -36,7 +36,14 @@
 
 (define (cell-value/force! c)
   (when (cell-recompute? c)
-    (set-cell-value! c ((cell-thunk c)))
+    (define identity (cell-id c))
+    (when (continuation-mark-set-first
+           (current-continuation-marks)
+           identity)
+      (error 'datacell "re-entrant cell! A cycle in cell dependencies was crossed while evaluating some cell."))
+    (set-cell-value! c
+                     (with-continuation-mark identity #t
+                       ((cell-thunk c))))
     (mark-children-dirty! c)) 
   (cell-value c))
 
@@ -53,7 +60,7 @@
   (check-equal?
    (cell-value/force! (make-cell (lambda () 1) (set)))
    1)
-  (test-case ""
+  (test-case "in which we chain cells"
     (define a (make-cell (lambda () 1) (set)))
     (define b (make-cell (lambda () (cell-value/force! a))
                          (set a)))
@@ -63,5 +70,11 @@
     (update-cell! a (lambda () 2) (set))
     (check-equal?
      (cell-value/force! b)
-     2)))
+     2))
+  (test-case "in which we have a cycle in the dataflow graph"
+    (define a (make-cell (lambda () 1) (set)))
+    (update-cell! a (lambda () (cell-value/force! a)) (set a))
+    (check-exn
+     #rx"re-entrant cell!"
+     (lambda () (cell-value/force! a)))))
    
