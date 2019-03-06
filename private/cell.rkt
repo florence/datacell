@@ -2,8 +2,7 @@
 (provide
  make-cell
  update-cell!
- cell-value/force!
- lift)
+ cell-value/force!)
 (require racket/set
          racket/undefined)
 (module+ test (require rackunit))
@@ -49,28 +48,6 @@
 (define (mark-children-dirty! c)
   (for ([ch (in-set (cell-children c))])
     (cell-mark-dirty! ch)))
-
-(define (lift f)
-  (define (force-args args)
-    (for/list ([arg (in-list args)])
-      (if (cell? arg)
-          (cell-value/force! arg)
-          arg)))
-  (make-keyword-procedure
-   (lambda (kw kw-args . rest-args)
-     (define parents
-       (apply mutable-seteq
-              (for/list ([a (in-list (append kw-args rest-args))]
-                         #:when (cell? a))
-                a)))
-     (make-cell
-      (lambda ()
-        (keyword-apply
-         f
-         kw
-         (force-args kw-args)
-         (force-args rest-args)))
-      parents))))
 
 (module+ test
   (check-equal?
