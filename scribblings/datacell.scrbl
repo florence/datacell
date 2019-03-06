@@ -5,13 +5,9 @@
          racket/sandbox]
 
 @title{datacell}
-@author{florence}
-@(define datacell-eval
-   (parameterize ([sandbox-output 'string]
-                  [sandbox-error-output 'string]
-                  [sandbox-memory-limit 50])
-     (define evil (make-evaluator 'racket))
-     (evil '(require datacell))))
+@author[(author+email "Spencer Florence" "spencer@florence.io")]
+@(define datacell-eval (make-base-eval))
+@(datacell-eval '(require datacell))
 
 @defmodule[datacell]
 
