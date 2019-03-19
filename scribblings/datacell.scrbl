@@ -27,7 +27,7 @@ A simple example:
           d]
 
 @defform[(define-cell name body ...)]{
- Defines a new cell called @racket[name], who's value will
+ Defines a new cell @racket[name], who's value will
  be computed by @racket[body ...]. If the body uses any other cells,
  the then the value of @racket[name] will be recomputed if the value
  of those cells change.
